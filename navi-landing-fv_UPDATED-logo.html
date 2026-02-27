@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>navi — your study OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pu:#7C3EDD;--puh:#6B32C8;--pus:#F0EBFF;--pum:#DDD0FF;--pud:#1E0A3C;
+  --bg:#F5F4F1;--sf:#FFFFFF;--sf2:#F1F1EF;--sf3:#E8E8E6;
+  --br:#E2E2DE;--br2:#CBCBC7;
+  --tx:#0F0F0F;--tx2:#525252;--tx3:#969696;
+  --gn:#15803D;--gns:#DCFCE7;
+  --am:#B45309;--ams:#FEF3C7;--amm:#FDE68A;
+  --rd:#B91C1C;--rds:#FEE2E2;
+  --display:'Instrument Serif',Georgia,serif;
+  --sans:'DM Sans',-apple-system,sans-serif;
+  --body:'Inter',-apple-system,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--bg);color:var(--tx);overflow-x:hidden;cursor:none}
+a{text-decoration:none;color:inherit}
+
+/* ── CURSOR ── */
+#cDot{position:fixed;width:8px;height:8px;background:var(--pu);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .18s,height .18s,opacity .18s}
+#cRing{position:fixed;width:34px;height:34px;border:1.5px solid rgba(124,62,221,.35);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+@media(hover:none){#cDot,#cRing{display:none}body{cursor:auto}}
+
+/* ── NAV ── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:0 clamp(20px,5vw,64px);height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .4s,box-shadow .4s;
+}
+#nav.scrolled{background:rgba(245,244,241,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 1px 0 var(--br)}
+.nav-logo{display:flex;align-items:center;gap:0}
+.nav-logo .navi-wordmark{height:22px;width:auto;display:block;object-fit:contain}
+/* Spacer fills center so logo left, badge right */
+.nav-spacer{flex:1}
+.nav-launch-badge{
+  display:flex;align-items:center;gap:7px;
+  background:var(--sf);border:1px solid var(--pum);
+  padding:7px 16px 7px 10px;border-radius:100px;
+  box-shadow:0 2px 12px rgba(124,62,221,.1);
+}
+.nav-launch-dot{width:7px;height:7px;border-radius:50%;background:var(--pu);flex-shrink:0;animation:blink 2s ease-in-out infinite}
+.nav-launch-text{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--pu);letter-spacing:.04em;white-space:nowrap}
+#nav.scrolled .nav-launch-badge{background:transparent;border-color:transparent;box-shadow:none}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:80px clamp(20px,6vw,80px) 0;
+  position:relative;overflow:hidden;
+}
+.hero-noise{position:absolute;inset:0;opacity:.025;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px}
+.hero-glow{position:absolute;width:800px;height:800px;background:radial-gradient(circle,rgba(124,62,221,.08) 0%,transparent 70%);top:-180px;left:50%;transform:translateX(-50%);pointer-events:none}
+.hero-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(124,62,221,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(124,62,221,.035) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 55% at 50% 28%,black 10%,transparent 100%)}
+
+.hero-pill{display:inline-flex;align-items:center;gap:7px;background:var(--sf);border:1px solid var(--pum);padding:6px 16px;border-radius:100px;font-family:var(--sans);font-size:11px;font-weight:600;color:var(--pu);letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:fadeUp .7s .1s ease forwards;box-shadow:0 2px 10px rgba(124,62,221,.1)}
+.hero-pill-dot{width:6px;height:6px;background:var(--pu);border-radius:50%;flex-shrink:0;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero-h{font-family:var(--display);font-size:clamp(50px,9vw,106px);line-height:.95;letter-spacing:-2.5px;color:var(--tx);max-width:960px;opacity:0;animation:fadeUp .9s .25s ease forwards;margin-bottom:22px}
+.hero-h em{font-style:italic;color:var(--pu)}
+
+.hero-sub{font-size:clamp(15px,1.5vw,18px);color:var(--tx2);line-height:1.75;max-width:500px;font-weight:300;margin-bottom:40px;opacity:0;animation:fadeUp .9s .45s ease forwards}
+
+.hero-acts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .9s .6s ease forwards;margin-bottom:64px}
+.btn-primary{font-family:var(--sans);font-size:15px;font-weight:600;background:var(--pu);color:#fff;border:none;padding:15px 34px;border-radius:100px;cursor:none;box-shadow:0 6px 28px rgba(124,62,221,.28);transition:background .2s,transform .15s,box-shadow .2s}
+.btn-primary:hover{background:var(--puh);transform:translateY(-2px);box-shadow:0 12px 36px rgba(124,62,221,.38)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO DUAL MOCKUP ── */
+.hero-devices{
+  position:relative;width:100%;max-width:980px;
+  opacity:0;animation:fadeUp 1.1s .75s ease forwards;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+
+/* MacBook */
+.macbook{flex:1;max-width:720px;position:relative;z-index:2}
+.mb-lid{background:linear-gradient(180deg,#2C2C2E 0%,#1C1C1E 100%);border-radius:12px 12px 4px 4px;padding:10px 10px 0;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset,0 28px 60px rgba(0,0,0,.22)}
+.mb-screen{background:var(--bg);border-radius:6px;overflow:hidden}
+.mb-bar{background:linear-gradient(180deg,#2a2a2a,#1a1a1a);padding:9px 14px;display:flex;align-items:center;gap:6px}
+.mbd{width:10px;height:10px;border-radius:50%}
+.mbd.r{background:#FF5F57}.mbd.y{background:#FFBD2E}.mbd.g{background:#28CA41}
+.mb-url{flex:1;background:rgba(255,255,255,.07);border-radius:4px;padding:4px 10px;font-size:10px;color:rgba(255,255,255,.3);font-family:var(--body);max-width:260px;margin:0 auto;text-align:center}
+.mb-content{height:clamp(240px,28vw,360px);display:flex;overflow:hidden}
+.mb-base{background:linear-gradient(180deg,#3A3A3C 0%,#2C2C2E 100%);height:14px;border-radius:0 0 3px 3px;margin-top:0}
+.mb-stand{width:140px;height:10px;background:linear-gradient(180deg,#3A3A3C,#2C2C2E);border-radius:0 0 8px 8px;margin:0 auto}
+.mb-foot{width:200px;height:6px;background:#3A3A3C;border-radius:0 0 4px 4px;margin:0 auto}
+
+/* Sidebar in MacBook */
+.d-sb{width:clamp(110px,13vw,170px);min-width:110px;background:var(--sf);border-right:1px solid var(--br);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.d-sb-logo{padding:10px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--br)}
+.d-lmark{width:18px;height:18px;background:var(--pu);border-radius:4px;flex-shrink:0}
+.d-lt{font-family:var(--sans);font-weight:700;font-size:11px}
+.d-user{padding:6px 10px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--br)}
+.d-av{width:18px;height:18px;border-radius:50%;background:var(--pus);color:var(--pu);font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.d-un{font-size:10px;font-weight:600}
+.d-us{font-size:8.5px;color:var(--tx3)}
+.d-nav{padding:3px 0;flex:1}
+.d-ni{display:flex;align-items:center;gap:6px;padding:5px 10px;font-size:10px;font-weight:400;color:var(--tx2)}
+.d-ni.act{color:var(--pu);background:var(--pus);font-weight:600}
+.d-ni-dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.45;flex-shrink:0}
+.d-ni-b{font-size:7.5px;font-weight:700;padding:1px 4px;border-radius:3px;background:var(--ams);color:var(--am);margin-left:auto}
+.d-divl{height:1px;background:var(--br);margin:2px 0}
+.d-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.d-hdr{padding:clamp(10px,1.5vw,16px) clamp(10px,1.5vw,18px) 0}
+.d-hdr-d{font-size:8.5px;color:var(--tx3);margin-bottom:2px}
+.d-hdr-t{font-size:clamp(14px,1.8vw,19px);font-weight:700;letter-spacing:-.5px}
+.d-body{padding:clamp(8px,1.2vw,13px) clamp(10px,1.5vw,18px);flex:1;overflow:hidden}
+.d-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.d-card{background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:10px}
+.d-clbl{font-size:7px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-family:var(--sans)}
+.d-ctitle{font-size:clamp(9px,1vw,11px);font-weight:600;color:var(--tx);line-height:1.3}
+.d-cbdg{display:inline-block;background:var(--pus);color:var(--pu);font-size:7px;font-weight:700;padding:2px 5px;border-radius:3px;margin-top:4px;font-family:var(--sans)}
+.d-cwarn{font-size:7.5px;color:var(--am);font-weight:500;margin-top:3px;font-family:var(--sans)}
+.d-btns{display:flex;gap:4px;margin-top:7px}
+.d-btn-p{flex:1;background:var(--pu);color:#fff;border-radius:4px;padding:4px;font-size:8px;font-weight:600;text-align:center;font-family:var(--sans)}
+.d-btn-s{background:var(--sf2);border:1px solid var(--br);border-radius:4px;padding:4px 7px;font-size:8px;font-weight:500;color:var(--tx2);font-family:var(--sans)}
+.d-mode-row{display:flex;align-items:center;gap:5px;padding:5px 7px;border-radius:6px;border:1px solid var(--br);background:var(--sf2);margin-bottom:3px}
+.d-mode-row.sel{border-color:var(--pu);background:var(--pus)}
+.d-mode-ic{font-size:9px;flex-shrink:0}
+.d-mode-n{font-size:8.5px;font-weight:600;color:var(--tx);font-family:var(--sans)}
+.d-mode-row.sel .d-mode-n{color:var(--pu)}
+.d-mode-s{font-size:7px;color:var(--tx3);font-family:var(--sans)}
+.d-sess-lbl{font-size:7px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-family:var(--sans)}
+.d-sess-tile{background:var(--sf);border:1px solid var(--br);border-radius:6px;padding:6px 8px;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between}
+.d-sess-n{font-size:9px;font-weight:600;color:var(--tx)}
+.d-sess-m{font-size:7.5px;color:var(--tx3);margin-top:1px}
+.d-sess-b{font-size:7px;font-weight:700;background:var(--pus);color:var(--pu);padding:2px 5px;border-radius:3px;font-family:var(--sans);white-space:nowrap}
+
+
+/* ── WAITLIST BAND ── */
+.wl-band{background:var(--pud);padding:clamp(70px,9vw,110px) clamp(20px,6vw,80px);text-align:center;position:relative;overflow:hidden}
+.wl-band::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(124,62,221,.5) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.wl-band::after{content:'';position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(167,139,250,.15) 0%,transparent 65%);top:20%;right:-100px;pointer-events:none}
+.wl-label{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:16px;display:block;position:relative;z-index:1}
+.wl-h{font-family:var(--display);font-size:clamp(32px,5vw,66px);line-height:1.03;letter-spacing:-1.2px;color:#fff;margin-bottom:12px;position:relative;z-index:1}
+.wl-h em{font-style:italic;color:var(--pum)}
+.wl-sub{font-size:clamp(13px,1.3vw,16px);color:rgba(255,255,255,.4);margin-bottom:36px;font-weight:300;line-height:1.7;position:relative;z-index:1}
+.wl-form{display:flex;flex-direction:column;gap:8px;max-width:380px;margin:0 auto;position:relative;z-index:1}
+.wl-inp{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);color:#fff;padding:14px 20px;border-radius:12px;font-family:var(--body);font-size:14px;outline:none;transition:border-color .2s,background .2s;width:100%}
+.wl-inp::placeholder{color:rgba(255,255,255,.25)}
+.wl-inp:focus{border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.1)}
+.wl-btn{background:#fff;color:var(--pud);border:none;padding:15px;border-radius:12px;font-family:var(--sans);font-size:14px;font-weight:700;cursor:none;transition:transform .15s,box-shadow .2s;width:100%}
+.wl-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,255,255,.12)}
+
+/* ── STORY SECTIONS ── */
+.story-section{min-height:100vh;display:grid;position:relative;overflow:hidden;align-items:stretch}
+.layout-left{grid-template-columns:52% 48%}
+.layout-right{grid-template-columns:48% 52%}
+.story-text{display:flex;flex-direction:column;justify-content:center;padding:clamp(60px,8vw,110px) clamp(36px,5.5vw,80px);position:relative;z-index:2}
+.story-visual{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:clamp(28px,3.5vw,52px)}
+
+/* Backgrounds */
+.s-bg-off{background:var(--bg)}
+.s-bg-light{background:var(--sf)}
+.s-bg-ink{background:#0C0C12}
+.s-bg-cream{background:#FEFCF7}
+.s-bg-subtle{background:#F8F7F4}
+
+/* Big ghost number */
+.s-num{font-family:var(--display);font-size:clamp(90px,13vw,160px);line-height:1;color:rgba(0,0,0,.04);font-style:italic;position:absolute;top:clamp(18px,2.5vw,36px);left:clamp(28px,3.5vw,52px);user-select:none;pointer-events:none;letter-spacing:-3px}
+.s-bg-ink .s-num{color:rgba(255,255,255,.04)}
+.s-num-r{left:auto;right:clamp(28px,3.5vw,52px)}
+
+.s-tag{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pu);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.s-tag::before{content:'';width:18px;height:2px;background:var(--pu);border-radius:1px;flex-shrink:0}
+.s-bg-ink .s-tag{color:var(--pum)}
+.s-bg-ink .s-tag::before{background:var(--pum)}
+
+.s-h{font-family:var(--display);font-size:clamp(30px,3.6vw,54px);line-height:1.07;letter-spacing:-1px;margin-bottom:18px}
+.s-h em{font-style:italic;color:var(--pu)}
+.s-bg-ink .s-h{color:#fff}
+.s-bg-ink .s-h em{color:var(--pum)}
+
+.s-body{font-size:clamp(14px,1.25vw,16px);color:var(--tx2);line-height:1.85;font-weight:300;max-width:420px;margin-bottom:24px}
+.s-bg-ink .s-body{color:rgba(255,255,255,.48)}
+
+.s-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.s-pill{font-family:var(--sans);font-size:11px;font-weight:500;padding:7px 14px;border-radius:100px;white-space:nowrap}
+.s-pill.pu{background:var(--pus);color:var(--pu);border:1px solid var(--pum)}
+.s-pill.gn{background:var(--gns);color:var(--gn)}
+.s-pill.am{background:var(--ams);color:var(--am)}
+.s-pill.dark{background:rgba(255,255,255,.07);color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.1)}
+
+/* ── MOCK WRAPPER ── */
+.mock{width:100%;max-width:500px;background:var(--sf);border-radius:13px;box-shadow:0 20px 56px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05);overflow:hidden;will-change:transform}
+.mock-bar{background:var(--sf2);border-bottom:1px solid var(--br);padding:9px 13px;display:flex;align-items:center;gap:5px}
+.md{width:8px;height:8px;border-radius:50%}
+.md.r{background:#FFB0AC}.md.y{background:#FFD9A0}.md.g{background:#A8EFB2}
+.mock-url{flex:1;background:var(--sf3);border-radius:4px;padding:4px 10px;font-size:9.5px;color:var(--tx3);max-width:220px;margin:0 auto;text-align:center;font-family:var(--body)}
+.mock-body{padding:clamp(13px,1.8vw,18px)}
+.mock-dark{background:#181820;border:1px solid rgba(255,255,255,.05);box-shadow:0 20px 56px rgba(0,0,0,.45)}
+.mock-dark .mock-bar{background:#111118;border-bottom-color:rgba(255,255,255,.06)}
+.mock-dark .mock-url{background:rgba(255,255,255,.06);color:rgba(255,255,255,.28)}
+
+/* ── LAYER 1: COURSES MOCK ── */
+.c-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.c-title{font-size:15px;font-weight:700;letter-spacing:-.4px}
+.c-sub{font-size:10px;color:var(--tx3);margin-top:1px}
+.c-alert{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border-radius:8px;background:var(--ams);border:1px solid var(--amm);margin-bottom:7px}
+.c-alert-ic{width:22px;height:22px;border-radius:5px;background:var(--am);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;color:#fff;font-weight:700}
+.c-alert-t{font-size:11px;font-weight:700;color:var(--am)}
+.c-alert-s{font-size:9.5px;color:var(--am);opacity:.8;margin-top:1px}
+.c-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;border:1px solid var(--br);background:var(--sf2);margin-bottom:6px}
+.c-ic{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.c-name{font-size:11.5px;font-weight:600;color:var(--tx)}
+.c-sub2{font-size:9.5px;color:var(--tx3);margin-top:1px}
+.c-pbar{height:3px;background:var(--br);border-radius:100px;overflow:hidden;margin-top:4px;max-width:90px}
+.c-pfill{height:100%;border-radius:100px}
+.c-stat{font-family:var(--sans);font-size:8.5px;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;margin-left:auto}
+.c-stat.am{background:var(--ams);color:var(--am)}
+.c-stat.gn{background:var(--gns);color:var(--gn)}
+
+/* ── LAYER 2: PLAN DUAL MOCK ── */
+/* Show both calendar section + secretary side by side in a split mock */
+/* ── Plan: full calendar + floating secretary wizard ── */
+.plan-full{
+  background:var(--sf);border-radius:13px;
+  box-shadow:0 20px 56px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.05);
+  width:100%;max-width:500px;
+  position:relative;
+  will-change:transform;
+}
+.plan-full-inner{overflow:hidden;border-radius:13px}
+.plan-mock-bar{background:var(--sf2);border-bottom:1px solid var(--br);padding:9px 13px;display:flex;align-items:center;gap:5px}
+.pbd{width:8px;height:8px;border-radius:50%}
+.pbd.r{background:#FFB0AC}.pbd.y{background:#FFD9A0}.pbd.g{background:#A8EFB2}
+.plan-url{flex:1;background:var(--sf3);border-radius:4px;padding:4px 10px;font-size:9.5px;color:var(--tx3);max-width:220px;margin:0 auto;text-align:center;font-family:var(--body)}
+.plan-body{padding:14px 14px 12px}
+.plan-nav-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.plan-nav-month{font-size:13px;font-weight:700;letter-spacing:-.3px}
+.plan-nav-btns{display:flex;gap:4px}
+.plan-nav-btn{width:22px;height:22px;border-radius:5px;background:var(--sf2);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:default}
+.plan-view-tabs{display:flex;gap:1px;background:var(--sf2);border:1px solid var(--br);border-radius:7px;padding:2px;margin-bottom:11px;width:fit-content}
+.plan-view-tab{font-family:var(--sans);font-size:8.5px;font-weight:600;padding:4px 10px;border-radius:5px;color:var(--tx3);cursor:default}
+.plan-view-tab.a{background:var(--sf);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.cal-dow-l{font-family:var(--sans);font-size:7.5px;font-weight:700;text-align:center;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{min-height:48px;border-radius:5px;padding:3px 3px;background:var(--sf2);border:1px solid var(--br);overflow:hidden;cursor:default}
+.cal-day.today{border-color:var(--pu);background:rgba(124,62,221,.04)}
+.cal-day.overload{border-color:var(--am);background:rgba(180,83,9,.04)}
+.cal-day.dimmed{opacity:.4}
+.cal-d-num{font-family:var(--sans);font-size:8.5px;font-weight:600;color:var(--tx3);margin-bottom:2px;text-align:right;padding-right:1px}
+.cal-day.today .cal-d-num{color:var(--pu);font-weight:800}
+.cal-day.overload .cal-d-num{color:var(--am)}
+.cal-chip{font-family:var(--sans);font-size:6px;font-weight:600;padding:1.5px 3px;border-radius:2.5px;margin-bottom:1.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;line-height:1.35}
+.cc-pu{background:var(--pus);color:var(--pu)}
+.cc-am{background:var(--ams);color:var(--am)}
+.cc-gn{background:var(--gns);color:var(--gn)}
+.cc-rd{background:var(--rds);color:var(--rd)}
+.cal-overload-tag{font-family:var(--sans);font-size:5.5px;font-weight:800;color:var(--am)}
+/* Float trigger button */
+.sec-trigger-btn{
+  display:flex;align-items:center;gap:7px;
+  margin-top:10px;
+  background:linear-gradient(135deg,var(--pu),#9B5DE5);
+  color:#fff;border:none;border-radius:100px;
+  padding:8px 14px 8px 10px;
+  font-family:var(--sans);font-size:10px;font-weight:700;
+  cursor:default;width:fit-content;
+  box-shadow:0 4px 16px rgba(124,62,221,.32);
+}
+.sec-trigger-av{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Secretary floating wizard */
+.sec-wizard{
+  position:absolute;
+  bottom:-14px;right:-24px;
+  width:205px;
+  background:var(--sf);
+  border-radius:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.15),0 0 0 1px rgba(0,0,0,.06);
+  overflow:hidden;
+  z-index:10;
+}
+.sec-wiz-hdr{
+  background:linear-gradient(135deg,var(--pu) 0%,#9B5DE5 100%);
+  padding:9px 11px;display:flex;align-items:center;gap:7px;
+}
+.sec-wiz-av{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-wiz-t{font-family:var(--sans);font-size:10px;font-weight:700;color:#fff}
+.sec-wiz-s{font-size:8px;color:rgba(255,255,255,.65);margin-top:1px}
+.sec-wiz-body{padding:9px 11px}
+.sw-navi{background:var(--pus);border-radius:7px 7px 7px 2px;padding:6px 8px;font-size:8px;color:var(--pud);line-height:1.5;margin-bottom:4px;max-width:90%}
+.sw-user{background:var(--pu);border-radius:7px 7px 2px 7px;padding:6px 8px;font-size:8px;color:#fff;line-height:1.5;margin-bottom:4px;max-width:85%;margin-left:auto}
+.sw-result{background:rgba(21,128,61,.07);border:1px solid rgba(21,128,61,.18);border-radius:7px;padding:6px 8px;font-size:8px;color:var(--gn);line-height:1.5;margin-bottom:6px}
+.sec-wiz-inp{display:flex;gap:4px;background:var(--sf2);border-top:1px solid var(--br);padding:7px 9px}
+.sec-wiz-inp-f{flex:1;background:var(--sf);border:1px solid var(--br);border-radius:100px;padding:4px 9px;font-size:7.5px;color:var(--tx3);font-family:var(--body)}
+.sec-wiz-inp-b{background:var(--pu);color:#fff;border:none;border-radius:100px;padding:4px 9px;font-size:7.5px;font-weight:600;cursor:default;font-family:var(--sans)}
+
+/* ── LAYER 3: WORK HUB ── */
+.sh-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sh-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.sh-badge{font-family:var(--sans);font-size:8px;font-weight:700;background:rgba(124,62,221,.3);color:var(--pum);padding:3px 9px;border-radius:100px;border:1px solid rgba(124,62,221,.35)}
+.sh-modes{display:flex;gap:5px;margin-bottom:12px;flex-wrap:nowrap;overflow-x:auto}
+.sh-mode{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:100px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);font-family:var(--sans);font-size:9.5px;font-weight:600;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0}
+.sh-mode.act{background:rgba(124,62,221,.22);border-color:rgba(124,62,221,.45);color:var(--pum)}
+.sh-chat{display:flex;flex-direction:column;gap:7px;margin-bottom:11px}
+.sh-msg{padding:8px 11px;border-radius:9px;font-size:10.5px;line-height:1.55}
+.sh-msg.user{background:rgba(124,62,221,.18);color:#fff;align-self:flex-end;border:1px solid rgba(124,62,221,.22);max-width:88%}
+.sh-msg.navi{background:rgba(255,255,255,.04);color:rgba(255,255,255,.75);align-self:flex-start;border:1px solid rgba(255,255,255,.06);max-width:96%}
+.sh-mode-tag{font-family:var(--sans);font-size:7px;font-weight:700;background:rgba(124,62,221,.38);color:var(--pum);padding:1px 5px;border-radius:3px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;display:inline-block}
+.sh-ev{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:9px 11px;border-left:2px solid var(--pu)}
+.sh-ev-lbl{font-family:var(--sans);font-size:8px;font-weight:700;color:var(--pu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sh-ev-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:10px;color:rgba(255,255,255,.55);border-bottom:1px solid rgba(255,255,255,.04)}
+.sh-ev-row:last-child{border-bottom:none}
+.sh-ev-check{width:13px;height:13px;border-radius:50%;background:var(--gn);display:flex;align-items:center;justify-content:center;font-size:7px;flex-shrink:0;color:#fff}
+
+/* ── LAYER 4: INSIGHTS ── */
+.ins-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.ins-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.ins-period{font-size:9.5px;color:rgba(255,255,255,.3)}
+.ins-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.ins-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:11px}
+.ins-stat-v{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.8px}
+.ins-stat-l{font-size:8.5px;color:rgba(255,255,255,.35);margin-top:2px;font-family:var(--sans)}
+.ins-crs{display:flex;flex-direction:column;gap:6px;margin-bottom:11px}
+.ins-cr{display:flex;align-items:center;gap:8px}
+.ins-cr-n{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.75);width:65px;flex-shrink:0}
+.ins-bar{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden}
+.ins-fill{height:100%;border-radius:100px}
+.ins-pct{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.45);width:28px;text-align:right;flex-shrink:0;font-family:var(--sans)}
+.ins-coach{background:rgba(124,62,221,.13);border:1px solid rgba(124,62,221,.22);border-radius:8px;padding:11px;border-top:2px solid var(--pu)}
+.ins-coach-hdr{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.ins-coach-av{width:20px;height:20px;border-radius:50%;background:var(--pu);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.ins-coach-t{font-size:10.5px;font-weight:700;color:var(--pum)}
+.ins-coach-b{font-size:10px;color:rgba(255,255,255,.5);line-height:1.6}
+.ins-profile{margin-top:9px;padding:9px 11px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px}
+.ins-pro-lbl{font-family:var(--sans);font-size:8px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.ins-tags{display:flex;flex-wrap:wrap;gap:5px}
+.ins-tag{font-family:var(--sans);font-size:8.5px;font-weight:600;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.45)}
+.ins-tag.hi{background:rgba(124,62,221,.18);border-color:rgba(124,62,221,.32);color:var(--pum)}
+
+/* ── LAYER 5: GROUPS ── */
+.gr-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.gr-title{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.gr-badge{font-family:var(--sans);font-size:8px;font-weight:700;background:var(--ams);color:var(--am);padding:3px 9px;border-radius:100px}
+.gr-lanes{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.lane{background:var(--bg);border:1px solid var(--br);border-radius:8px;overflow:hidden}
+.lane-hdr{padding:6px 9px;border-bottom:1px solid var(--br);font-family:var(--sans);font-size:8px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:4px}
+.lane-hdr.nv{background:var(--pus);color:var(--pu)}
+.ldot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.lane-body{padding:7px;display:flex;flex-direction:column;gap:4px}
+.bub{padding:5px 7px;border-radius:6px;font-size:8.5px;line-height:1.4}
+.bub.o{background:var(--sf);color:var(--tx2);align-self:flex-start}
+.bub.s{background:var(--pu);color:#fff;align-self:flex-end}
+.bsndr{font-family:var(--sans);font-size:6.5px;font-weight:700;color:var(--tx3);margin-bottom:1px}
+.nv-card{margin:6px 7px;background:var(--pus);border:1px solid var(--pum);border-left:2px solid var(--pu);border-radius:6px;padding:7px 8px}
+.nv-ct{font-family:var(--sans);font-size:8px;font-weight:700;color:var(--pu);margin-bottom:3px}
+.nv-ci{font-size:7.5px;color:var(--pu);line-height:1.5;opacity:.8}
+.nv-ci::before{content:'· '}
+.gr-merge{margin-top:9px;padding:9px 11px;background:var(--pus);border:1px solid var(--pum);border-radius:8px;display:flex;align-items:center;justify-content:space-between}
+.gr-merge-t{font-size:10px;font-weight:600;color:var(--pu)}
+.gr-merge-btn{font-family:var(--sans);font-size:8.5px;font-weight:700;background:var(--pu);color:#fff;padding:4px 10px;border-radius:100px}
+.pain-chips{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.pain-chip{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:9px;background:var(--sf);border:1px solid var(--br)}
+.pain-ic{font-size:15px;flex-shrink:0}
+.pain-t{font-size:12px;font-weight:600;color:var(--tx)}
+.pain-s{font-size:10px;color:var(--tx3);margin-top:1px}
+
+/* ── LAYER 6: ONBOARDING ── */
+.ob-browser{background:var(--sf);border-radius:11px;box-shadow:0 16px 48px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.05);overflow:hidden;width:100%}
+.ob-bar{background:#3c4043;padding:9px 13px;display:flex;align-items:center;gap:8px}
+.ob-bds{display:flex;gap:5px}
+.ob-bd{width:9px;height:9px;border-radius:50%}
+.ob-bd.r{background:#FF5F57}.ob-bd.y{background:#FFBD2E}.ob-bd.g{background:#28CA41}
+.ob-url{flex:1;background:rgba(255,255,255,.14);border-radius:4px;padding:4px 11px;font-size:9.5px;color:rgba(255,255,255,.45);font-family:var(--body)}
+.ob-ext{width:24px;height:24px;background:var(--pu);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ob-lms{background:#f0f0f0;padding:14px;position:relative}
+.ob-lms-hdr{background:#E31837;padding:9px 12px;border-radius:6px;margin-bottom:10px}
+.ob-lms-logo{font-family:var(--sans);font-size:12px;font-weight:700;color:#fff}
+.ob-lms-sub{font-size:9px;color:rgba(255,255,255,.65);margin-top:1px}
+.ob-lms-rows{display:flex;flex-direction:column;gap:5px}
+.ob-lms-row{background:var(--sf);border-radius:6px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--br);position:relative}
+.ob-lms-n{font-size:10px;font-weight:600;color:var(--tx)}
+.ob-lms-s{font-size:8.5px;color:var(--tx3);margin-top:1px}
+.ob-lms-g{font-family:var(--sans);font-size:10px;font-weight:700;color:var(--gn)}
+.ob-overlay{position:absolute;inset:0;background:rgba(124,62,221,.05);border:2px solid var(--pu);border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding:5px;pointer-events:none}
+.ob-scan{background:var(--pu);color:#fff;font-family:var(--sans);font-size:7px;font-weight:700;padding:3px 7px;border-radius:3px;display:flex;align-items:center;gap:3px}
+.ob-scan-dot{width:4px;height:4px;border-radius:50%;background:#fff;animation:blink 1s ease-in-out infinite}
+.ob-popup{position:absolute;right:14px;top:44px;width:200px;background:var(--sf);border-radius:11px;box-shadow:0 8px 28px rgba(0,0,0,.16),0 0 0 1px rgba(0,0,0,.05);padding:13px;z-index:5}
+.ob-popup-t{font-size:11px;font-weight:700;color:var(--tx);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.ob-popup-lm{width:16px;height:16px;background:var(--pu);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ob-popup-s{font-size:9.5px;color:var(--tx3);margin-bottom:10px;line-height:1.5}
+.ob-popup-plbl{font-family:var(--sans);font-size:8.5px;font-weight:700;color:var(--tx3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.ob-popup-bar{height:4px;background:var(--br);border-radius:100px;overflow:hidden;margin-bottom:3px}
+.ob-popup-fill{height:100%;background:var(--pu);border-radius:100px;animation:fillBar 2.5s 1s ease forwards;width:0}
+@keyframes fillBar{to{width:73%}}
+.ob-popup-items{display:flex;flex-direction:column;gap:3px}
+.ob-popup-item{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--tx2)}
+.ob-popup-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* ── FINAL CTA ── */
+.final-cta{background:var(--pud);padding:clamp(64px,8vw,100px) clamp(20px,6vw,80px);text-align:center;position:relative;overflow:hidden}
+.final-cta::before{content:'';position:absolute;width:800px;height:800px;background:radial-gradient(circle,rgba(124,62,221,.38) 0%,transparent 60%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.final-cta::after{content:'';position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(167,139,250,.14) 0%,transparent 60%);bottom:-150px;right:-80px;pointer-events:none}
+.final-h{font-family:var(--display);font-size:clamp(34px,4.8vw,72px);line-height:1.03;letter-spacing:-1.5px;color:#fff;margin-bottom:14px;position:relative;z-index:1}
+.final-h em{font-style:italic;color:var(--pum)}
+.final-sub{font-size:clamp(13px,1.3vw,17px);color:rgba(255,255,255,.38);margin-bottom:36px;font-weight:300;line-height:1.7;position:relative;z-index:1}
+.final-form{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:0 auto;position:relative;z-index:1}
+.final-inp{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);color:#fff;padding:14px 20px;border-radius:12px;font-family:var(--body);font-size:14px;outline:none;transition:border-color .2s;width:100%}
+.final-inp::placeholder{color:rgba(255,255,255,.22)}
+.final-inp:focus{border-color:rgba(255,255,255,.3)}
+.final-btn{background:#fff;color:var(--pud);border:none;padding:15px;border-radius:12px;font-family:var(--sans);font-size:14px;font-weight:700;cursor:none;transition:transform .15s;width:100%;position:relative;z-index:1}
+.final-btn:hover{transform:translateY(-1px)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--br);padding:24px clamp(20px,5vw,64px);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-wrap:wrap;gap:10px}
+.footer-logo .navi-wordmark{height:18px;width:auto;object-fit:contain}
+.footer-right{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.footer-link{font-family:var(--sans);font-size:11.5px;color:var(--tx3);cursor:none;transition:color .2s}
+.footer-link:hover{color:var(--pu)}
+.footer-copy{font-family:var(--sans);font-size:11.5px;color:var(--tx3)}
+
+/* ── DIVIDERS ── */
+.divider{height:1px;background:linear-gradient(to right,transparent,var(--br),transparent)}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(36px);transition:opacity .85s cubic-bezier(.23,1,.32,1),transform .85s cubic-bezier(.23,1,.32,1)}
+.reveal.vis{opacity:1;transform:translateY(0)}
+.rd1{transition-delay:.1s}.rd2{transition-delay:.2s}.rd3{transition-delay:.32s}.rd4{transition-delay:.44s}
+.reveal-l{opacity:0;transform:translateX(-36px);transition:opacity .85s cubic-bezier(.23,1,.32,1),transform .85s cubic-bezier(.23,1,.32,1)}
+.reveal-l.vis{opacity:1;transform:translateX(0)}
+.reveal-r{opacity:0;transform:translateX(36px);transition:opacity .85s cubic-bezier(.23,1,.32,1),transform .85s cubic-bezier(.23,1,.32,1)}
+.reveal-r.vis{opacity:1;transform:translateX(0)}
+
+/* ── PARALLAX DATA ATTRS handled in JS ── */
+[data-parallax]{will-change:transform}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .layout-left,.layout-right{grid-template-columns:1fr}
+  .layout-left .story-text,.layout-right .story-text{order:1}
+  .layout-left .story-visual,.layout-right .story-visual{order:2;position:relative;height:auto;padding:28px 22px 40px}
+  .story-text{padding:clamp(44px,7vw,70px) clamp(22px,5vw,52px)}
+  .s-body{max-width:100%}
+  .d-sb:not(.hero-sb){display:none}
+  .macbook{max-width:100%}
+  .plan-full{max-width:100%}
+  .sec-wizard{right:-10px;width:185px}
+  .gr-lanes{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .hero-h{letter-spacing:-1.8px}
+  .s-num{display:none}
+  .s-pill{font-size:10.5px;padding:6px 12px}
+  .week-g{display:none}
+  .gr-lanes{grid-template-columns:1fr}
+  footer{flex-direction:column;align-items:flex-start}
+  .ins-stats{grid-template-columns:1fr 1fr}
+  .mb-content{height:clamp(200px,50vw,300px)}
+  .hero-devices{gap:0}
+}
+</style>
+</head>
+<body>
+
+<div id="cDot"></div>
+<div id="cRing"></div>
+
+<!-- ══ NAV ══ -->
+<nav id="nav">
+  <div class="nav-logo">
+    <img class="navi-wordmark" src="Artboard 9_1.svg" alt="navi">
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="nav-launch-badge">
+    <div class="nav-launch-dot"></div>
+    <span class="nav-launch-text">Launching soon</span>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero" id="top">
+  <div class="hero-noise"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+
+  <h1 class="hero-h">Built for<br><em>how you learn.</em></h1>
+  <p class="hero-sub">Not a notes app. Not a chatbot. Navi connects your courses, schedule, and study sessions into one system that actually helps you understand, remember, and save time while making progress.</p>
+  <div class="hero-acts">
+    <button class="btn-primary" onclick="sTo('#waitlist-1')">Get early access</button>
+  </div>
+
+  <!-- Dual device mockup: MacBook + iPhone -->
+  <div class="hero-devices" id="heroDevices" data-parallax="0.1">
+    <!-- MacBook -->
+    <div class="macbook">
+      <div class="mb-lid">
+        <div class="mb-screen">
+          <div class="mb-bar">
+            <div class="mbd r"></div><div class="mbd y"></div><div class="mbd g"></div>
+            <div class="mb-url">navi.geo-ed.tech</div>
+          </div>
+          <div class="mb-content">
+            <!-- Sidebar -->
+            <div class="d-sb hero-sb">
+              <div class="d-sb-logo"><img style="height:12px;width:auto" src="Artboard 9_1.svg" alt="navi"></div>
+              <div class="d-user"><div class="d-av">S</div><div><div class="d-un">Sam</div><div class="d-us">Business · Uni</div></div></div>
+              <div class="d-nav">
+                <div class="d-ni act"><div class="d-ni-dot"></div>Home</div>
+                <div class="d-ni"><div class="d-ni-dot"></div>Today</div>
+                <div class="d-ni"><div class="d-ni-dot"></div>Plan</div>
+                <div class="d-ni"><div class="d-ni-dot"></div>Courses</div>
+                <div class="d-ni"><div class="d-ni-dot"></div>Groups</div>
+                <div class="d-divl"></div>
+                <div class="d-ni"><div class="d-ni-dot"></div><span style="flex:1">Sessions</span><span class="d-ni-b">3</span></div>
+                <div class="d-ni"><div class="d-ni-dot"></div>Insights</div>
+              </div>
+            </div>
+            <!-- Main -->
+            <div class="d-main">
+              <div class="d-hdr">
+                <div class="d-hdr-d">Friday, 20 February 2026</div>
+                <div class="d-hdr-t">Good morning, Sam.</div>
+              </div>
+              <div class="d-body">
+                <div class="d-2col">
+                  <div class="d-card">
+                    <div class="d-clbl">Next best step</div>
+                    <div class="d-ctitle">Elasticity: explain-back in your own words</div>
+                    <div class="d-cbdg">ECON 201</div>
+                    <div class="d-cwarn">⚠ Midterm in 7 days</div>
+                    <div class="d-btns"><div class="d-btn-p">⚡ Start</div><div class="d-btn-s">Swap</div></div>
+                  </div>
+                  <div class="d-card">
+                    <div class="d-clbl">Start a session</div>
+                    <div class="d-mode-row sel"><div class="d-mode-ic">📖</div><div><div class="d-mode-n">Study & Practice</div><div class="d-mode-s">Learn, recall, verify</div></div></div>
+                    <div class="d-mode-row"><div class="d-mode-ic">✍️</div><div><div class="d-mode-n">Write & Complete</div></div></div>
+                    <div class="d-mode-row"><div class="d-mode-ic">⚡</div><div><div class="d-mode-n">Quick Ask</div></div></div>
+                  </div>
+                </div>
+                <div class="d-sess-lbl">Recent sessions</div>
+                <div class="d-sess-tile"><div><div class="d-sess-n">Elasticity — deep dive</div><div class="d-sess-m">Feb 19 · 45m · Study & Practice</div></div><div class="d-sess-b">Linked</div></div>
+                <div class="d-sess-tile"><div><div class="d-sess-n">Survey framework session</div><div class="d-sess-m">Feb 18 · 30m · Write & Complete</div></div><div class="d-sess-b">Linked</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-base"></div>
+      <div class="mb-stand"></div>
+      <div class="mb-foot"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ WAITLIST 1 ══ -->
+<section class="wl-band" id="waitlist-1">
+  <span class="wl-label">Early access</span>
+  <h2 class="wl-h">The waitlist is open.<br><em>Don't fall behind.</em></h2>
+  <p class="wl-sub">Early students get priority onboarding and shape the product.<br>No spam. Just a better way to study.</p>
+  <div class="wl-form">
+    <input class="wl-inp" type="text" placeholder="Your name" id="wl1-name" autocomplete="name">
+    <input class="wl-inp" type="email" placeholder="you@university.edu" id="wl1-email" autocomplete="email">
+    <button class="wl-btn" onclick="submitWL('wl1-name','wl1-email',this)">Reserve my spot</button>
+  </div>
+</section>
+
+<!-- ══ LAYER 1: COURSES ══ -->
+<section class="story-section layout-left s-bg-off" id="courses">
+  <div class="s-num">01</div>
+  <div class="story-text">
+    <div class="s-tag reveal">Courses</div>
+    <h2 class="s-h reveal rd1">Your semester is<br>a <em>mess.</em><br>We see it all.</h2>
+    <p class="s-body reveal rd2">Five courses. Four deadlines you didn't know clashed. One assignment you forgot had a hidden weighting. Navi pulls your whole academic picture into one place — grades, deadlines, performance gaps, and what actually needs your attention right now.</p>
+    <div class="s-pills reveal rd3">
+      <span class="s-pill am">⚠ Recall weak — ECON 201</span>
+      <span class="s-pill gn">On track — MKTG 405</span>
+      <span class="s-pill pu">Midterm in 7 days</span>
+    </div>
+    <p class="s-body reveal rd3" style="font-size:14px;margin-bottom:0">No more spreadsheets. No more surprise zeros. Just clarity.</p>
+  </div>
+  <div class="story-visual">
+    <div class="mock reveal-r" data-parallax="mock" id="mock-courses">
+      <div class="mock-bar"><div class="md r"></div><div class="md y"></div><div class="md g"></div><div class="mock-url">navi.geo-ed.tech/courses</div></div>
+      <div class="mock-body">
+        <div class="c-hdr">
+          <div><div class="c-title">Courses</div><div class="c-sub">5 active · Week of Feb 20</div></div>
+          <span style="font-family:var(--sans);font-size:8.5px;font-weight:700;background:var(--pus);color:var(--pu);padding:4px 10px;border-radius:100px">Performance</span>
+        </div>
+        <div class="c-alert">
+          <div class="c-alert-ic">!</div>
+          <div><div class="c-alert-t">ECON 201 Midterm · Feb 27</div><div class="c-alert-s">7 days away · Recall coverage low · 62% progress</div></div>
+        </div>
+        <div class="c-row">
+          <div class="c-ic" style="background:var(--rds)">📉</div>
+          <div style="flex:1;min-width:0"><div class="c-name">ECON 201 — Microeconomics</div><div class="c-sub2">Low verification · Deadline close</div><div class="c-pbar"><div class="c-pfill" style="width:62%;background:var(--am)"></div></div></div>
+          <div class="c-stat am">Needs attention</div>
+        </div>
+        <div class="c-row">
+          <div class="c-ic" style="background:var(--gns)">📊</div>
+          <div style="flex:1;min-width:0"><div class="c-name">MKTG 405 — Research Methods</div><div class="c-sub2">Good momentum · Milestone Feb 25</div><div class="c-pbar"><div class="c-pfill" style="width:74%;background:var(--gn)"></div></div></div>
+          <div class="c-stat gn">On track</div>
+        </div>
+        <div class="c-row">
+          <div class="c-ic" style="background:var(--pus)">📜</div>
+          <div style="flex:1;min-width:0"><div class="c-name">HIST 2104 — Analysis</div><div class="c-sub2">Stable · Response paper Mar 1</div><div class="c-pbar"><div class="c-pfill" style="width:55%;background:var(--pu)"></div></div></div>
+          <div class="c-stat gn">On track</div>
+        </div>
+        <div style="margin-top:10px;background:var(--sf2);border:1px solid var(--br);border-radius:8px;padding:10px">
+          <div style="font-family:var(--sans);font-size:8px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">ECON 201 · Grade breakdown</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:10px"><span style="color:var(--tx2)">Exams (40%)</span><span style="font-weight:700;color:var(--tx3)">—</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px"><span style="color:var(--tx2)">Assignments (30%)</span><span style="font-weight:700;color:var(--gn)">78 ✓</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px"><span style="color:var(--tx2)">Participation (15%)</span><span style="font-weight:700;color:var(--tx3)">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ LAYER 2: PLAN & TODAY ══ -->
+<section class="story-section layout-right s-bg-light" id="plan">
+  <div class="s-num s-num-r">02</div>
+  <div class="story-visual">
+    <!-- Full calendar with floating secretary wizard -->
+    <div class="plan-full reveal-l" data-parallax="mock" id="mock-plan">
+      <div class="plan-full-inner">
+        <div class="plan-mock-bar">
+          <div class="pbd r"></div><div class="pbd y"></div><div class="pbd g"></div>
+          <div class="plan-url">navi.geo-ed.tech/plan</div>
+        </div>
+        <div class="plan-body">
+          <div class="plan-nav-hdr">
+            <div class="plan-nav-month">February 2026</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="plan-view-tabs">
+                <div class="plan-view-tab a">Week</div>
+                <div class="plan-view-tab">Month</div>
+                <div class="plan-view-tab">Tasks</div>
+              </div>
+              <div class="plan-nav-btns"><div class="plan-nav-btn">‹</div><div class="plan-nav-btn">›</div></div>
+            </div>
+          </div>
+          <!-- Day-of-week headers -->
+          <div class="cal-dow">
+            <div class="cal-dow-l">Mon</div><div class="cal-dow-l">Tue</div><div class="cal-dow-l">Wed</div>
+            <div class="cal-dow-l">Thu</div><div class="cal-dow-l" style="color:var(--pu)">Fri</div>
+            <div class="cal-dow-l">Sat</div><div class="cal-dow-l">Sun</div>
+          </div>
+          <!-- Calendar grid: Feb 16–28 + Mar 1 -->
+          <div class="cal-grid">
+            <div class="cal-day dimmed"><div class="cal-d-num">16</div></div>
+            <div class="cal-day dimmed"><div class="cal-d-num">17</div><div class="cal-chip cc-gn">MKTG reading</div></div>
+            <div class="cal-day dimmed"><div class="cal-d-num">18</div><div class="cal-chip cc-pu">Session</div></div>
+            <div class="cal-day dimmed"><div class="cal-d-num">19</div><div class="cal-chip cc-pu">Elasticity</div></div>
+            <div class="cal-day today"><div class="cal-d-num">20</div><div class="cal-chip cc-pu">Recall ECON</div></div>
+            <div class="cal-day"><div class="cal-d-num">21</div><div class="cal-chip cc-pu">PS2 Q1–Q3</div></div>
+            <div class="cal-day"><div class="cal-d-num">22</div><div class="cal-chip cc-gn">Group mtg</div></div>
+            <!-- Row 2 -->
+            <div class="cal-day overload">
+              <div class="cal-d-num">23</div>
+              <div class="cal-chip cc-am">ECON recap</div>
+              <div class="cal-chip cc-am">MKTG draft</div>
+              <div class="cal-chip cc-rd">+3 more</div>
+              <div class="cal-overload-tag">⚠ Overload</div>
+            </div>
+            <div class="cal-day"><div class="cal-d-num">24</div><div class="cal-chip cc-pu">Practice Q</div></div>
+            <div class="cal-day"><div class="cal-d-num">25</div><div class="cal-chip cc-am">Milestone</div><div class="cal-chip cc-gn">HIST draft</div></div>
+            <div class="cal-day"><div class="cal-d-num">26</div></div>
+            <div class="cal-day"><div class="cal-d-num">27</div><div class="cal-chip cc-rd">ECON Midterm</div></div>
+            <div class="cal-day"><div class="cal-d-num">28</div></div>
+            <div class="cal-day"><div class="cal-d-num">1</div><div class="cal-chip cc-am">HIST paper</div></div>
+          </div>
+          <!-- Secretary trigger -->
+          <div class="sec-trigger-btn">
+            <div class="sec-trigger-av"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="white" stroke-width="1.4"/><path d="M6 10l1.5-4L11 8l-4 1.5z" stroke="white" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
+            Ask Navi secretary
+          </div>
+        </div>
+      </div>
+      <!-- Floating secretary wizard popup -->
+      <div class="sec-wizard">
+        <div class="sec-wiz-hdr">
+          <div class="sec-wiz-av"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="white" stroke-width="1.4"/><path d="M6 10l1.5-4L11 8l-4 1.5z" stroke="white" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
+          <div><div class="sec-wiz-t">Navi secretary</div><div class="sec-wiz-s">Ask me anything about your schedule</div></div>
+        </div>
+        <div class="sec-wiz-body">
+          <div class="sw-navi">Monday looks overloaded — want me to rebalance?</div>
+          <div class="sw-user">Yes. I'm free Tue afternoon and Thu.</div>
+          <div class="sw-result">✓ Redistributed Mon's 5 tasks across Tue & Thu. Feb 23 now has 2 items. Midterm prep locked in before Feb 27.</div>
+        </div>
+        <div class="sec-wiz-inp">
+          <div class="sec-wiz-inp-f" style="color:rgba(80,80,80,.4)">Ask about your week…</div>
+          <div class="sec-wiz-inp-b">Send</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="story-text">
+    <div class="s-tag reveal">Plan & Today</div>
+    <h2 class="s-h reveal rd1">Time management<br>that <em>adjusts</em><br>for you.</h2>
+    <p class="s-body reveal rd2">Your plan isn't just a to-do list. Navi knows your course deadlines, your study gaps, and your personal schedule — and builds a week that actually works. When life changes, just tell the Navi secretary. It rebalances everything.</p>
+    <div class="s-pills reveal rd3">
+      <span class="s-pill pu">AI schedule rebalancing</span>
+      <span class="s-pill gn">Deadline-aware planning</span>
+      <span class="s-pill am">Overload detection</span>
+    </div>
+    <p class="s-body reveal rd4" style="font-size:14px;margin-bottom:0">"I'm busy Monday" is now a complete sentence. Navi handles the rest.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ LAYER 3: WORK HUB ══ -->
+<section class="story-section layout-left s-bg-ink" id="workhub">
+  <div class="s-num">03</div>
+  <div class="story-text">
+    <div class="s-tag reveal">Work Hub</div>
+    <h2 class="s-h reveal rd1">The students<br>who win study<br><em>smarter,</em> not harder.</h2>
+    <p class="s-body reveal rd2">Every session in Navi is built on learning science. Switch between Study & Practice, Write & Complete, or Quick Ask. Navi guides you to recall without your notes, builds your evidence of understanding, and tells you when you're actually ready.</p>
+    <div class="s-pills reveal rd3">
+      <span class="s-pill dark">📖 Study & Practice</span>
+      <span class="s-pill dark">✍️ Write & Complete</span>
+      <span class="s-pill dark">⚡ Quick Ask</span>
+    </div>
+  </div>
+  <div class="story-visual" style="background:#0C0C12">
+    <div class="mock mock-dark reveal-r" data-parallax="mock" id="mock-session">
+      <div class="mock-bar"><div class="md r"></div><div class="md y"></div><div class="md g"></div><div class="mock-url" style="color:rgba(255,255,255,.25);background:rgba(255,255,255,.05)">navi.geo-ed.tech/session</div></div>
+      <div class="mock-body">
+        <div class="sh-hdr"><div class="sh-title">Elasticity — deep dive</div><div class="sh-badge">ECON 201</div></div>
+        <div class="sh-modes">
+          <div class="sh-mode act">📖 Study & Practice</div>
+          <div class="sh-mode">✍️ Write & Complete</div>
+          <div class="sh-mode">⚡ Quick Ask</div>
+        </div>
+        <div class="sh-chat">
+          <div class="sh-msg user">Can you help me understand price elasticity before the midterm?</div>
+          <div style="align-self:flex-start;max-width:96%">
+            <div class="sh-mode-tag">Study & Practice</div>
+            <div class="sh-msg navi">Let's work through this properly.<br><br>Elasticity measures how responsive quantity is to a price change: Ed = %ΔQ / %ΔP.<br><br><strong style="color:var(--pum)">Recall check:</strong> Without looking — what makes demand elastic vs. inelastic?</div>
+          </div>
+          <div class="sh-msg user">Elastic = price change causes big shift in quantity. Inelastic = quantity barely moves?</div>
+          <div style="align-self:flex-start;max-width:96%">
+            <div class="sh-msg navi">Exactly right. Strong recall. Let's go one level deeper — can you give me a real-world example of each?</div>
+          </div>
+        </div>
+        <!-- Chat input bar -->
+        <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:8px 11px;margin-top:4px">
+          <div style="flex:1;font-size:10px;color:rgba(255,255,255,.25);font-family:var(--body)">Reply to Navi…</div>
+          <div style="background:var(--pu);border-radius:6px;padding:5px 10px;font-family:var(--sans);font-size:8.5px;font-weight:600;color:#fff;flex-shrink:0;cursor:default">Send</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NO DIVIDER between layers 3 and 4 — they share the dark background -->
+
+<!-- ══ LAYER 4: INSIGHTS ══ -->
+<section class="story-section layout-right s-bg-ink" id="insights">
+  <div class="s-num s-num-r">04</div>
+  <div class="story-visual" style="background:#0C0C12">
+    <div class="mock mock-dark reveal-l" data-parallax="mock" id="mock-insights">
+      <div class="mock-bar"><div class="md r"></div><div class="md y"></div><div class="md g"></div><div class="mock-url" style="color:rgba(255,255,255,.25);background:rgba(255,255,255,.05)">navi.geo-ed.tech/insights</div></div>
+      <div class="mock-body">
+        <div class="ins-hdr"><div class="ins-title">Insights</div><span class="ins-period">Week of Feb 19–25</span></div>
+        <div class="ins-stats">
+          <div class="ins-stat"><div class="ins-stat-v">6.5h</div><div class="ins-stat-l">Study time</div></div>
+          <div class="ins-stat"><div class="ins-stat-v">5</div><div class="ins-stat-l">Sessions done</div></div>
+          <div class="ins-stat"><div class="ins-stat-v">25%</div><div class="ins-stat-l">Plan adherence</div></div>
+          <div class="ins-stat"><div class="ins-stat-v">5</div><div class="ins-stat-l">Evidence items</div></div>
+        </div>
+        <div class="ins-crs">
+          <div class="ins-cr"><div class="ins-cr-n">ECON 201</div><div class="ins-bar"><div class="ins-fill" style="width:62%;background:var(--am)"></div></div><div class="ins-pct">62%</div></div>
+          <div class="ins-cr"><div class="ins-cr-n">MKTG 405</div><div class="ins-bar"><div class="ins-fill" style="width:74%;background:var(--pu)"></div></div><div class="ins-pct">74%</div></div>
+          <div class="ins-cr"><div class="ins-cr-n">HIST 2104</div><div class="ins-bar"><div class="ins-fill" style="width:55%;background:var(--pum)"></div></div><div class="ins-pct">55%</div></div>
+        </div>
+        <div class="ins-coach">
+          <div class="ins-coach-hdr"><div class="ins-coach-av"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="white" stroke-width="1.3"/><path d="M6 10l1.5-4L11 8l-4 1.5z" stroke="white" stroke-width="1.2" stroke-linejoin="round"/></svg></div><div class="ins-coach-t">Navi coach note</div></div>
+          <div class="ins-coach-b">ECON 201 recall coverage is low ahead of Feb 27. Add one recall session before the weekend. Your best sessions run 30–45 min.</div>
+        </div>
+        <div class="ins-profile">
+          <div class="ins-pro-lbl">Your learning profile</div>
+          <div class="ins-tags">
+            <span class="ins-tag hi">Visual learner</span>
+            <span class="ins-tag hi">Strong in recall</span>
+            <span class="ins-tag">Deadline-driven</span>
+            <span class="ins-tag">Prefers 30–45m</span>
+            <span class="ins-tag">Works best AM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="story-text">
+    <div class="s-tag reveal">Insights & Personalisation</div>
+    <h2 class="s-h reveal rd1">Navi adapts.<br>Because you<br><em>deserve it.</em></h2>
+    <p class="s-body reveal rd2">Every session you run, every recall check you complete, every grade that comes in — Navi reads the pattern. It builds a picture of how you actually learn, and adjusts what it suggests, when it nudges you, and how deep it pushes. Educator feedback doesn't go in a drawer. It feeds back into your plan.</p>
+    <div class="s-pills reveal rd3">
+      <span class="s-pill dark">Adapts to your pace</span>
+      <span class="s-pill dark">Performance-based planning</span>
+    </div>
+    <div class="s-pills reveal rd4">
+      <span class="s-pill dark">Learning style detection</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ LAYER 5: GROUPS ══ -->
+<section class="story-section layout-left s-bg-cream" id="groups">
+  <div class="s-num">05</div>
+  <div class="story-text">
+    <div class="s-tag reveal">Group Channels</div>
+    <h2 class="s-h reveal rd1">Group projects<br>don't have to be<br><em>painful</em> anymore.</h2>
+    <p class="s-body reveal rd2">One person does nothing. Three people write three different papers. No one knows what was decided. Navi runs a separate AI lane next to your group chat — silently capturing what's said, flagging where you've drifted apart, and proposing how to merge it back.</p>
+    <div class="pain-chips reveal rd3">
+      <div class="pain-chip"><span class="pain-ic">😤</span><div><div class="pain-t">Misaligned research directions</div><div class="pain-s">Caught and flagged automatically</div></div></div>
+      <div class="pain-chip"><span class="pain-ic">🔀</span><div><div class="pain-t">Parallel drafts, zero coordination</div><div class="pain-s">Merge proposal ready when you need it</div></div></div>
+      <div class="pain-chip"><span class="pain-ic">🗑️</span><div><div class="pain-t">"What did we actually decide?"</div><div class="pain-s">Full session recap in the Navi lane</div></div></div>
+    </div>
+  </div>
+  <div class="story-visual">
+    <div class="mock reveal-r" data-parallax="mock" id="mock-groups">
+      <div class="mock-bar"><div class="md r"></div><div class="md y"></div><div class="md g"></div><div class="mock-url">navi.geo-ed.tech/groups</div></div>
+      <div class="mock-body">
+        <div class="gr-hdr">
+          <div><div class="gr-title">MKTG Project Team</div><div style="font-size:9.5px;color:var(--tx3);margin-top:2px">Sam · Lina · Omar · MKTG 405</div></div>
+          <div class="gr-badge">Needs attention</div>
+        </div>
+        <div class="gr-lanes">
+          <div class="lane">
+            <div class="lane-hdr"><div class="ldot"></div>Human lane</div>
+            <div class="lane-body">
+              <div><div class="bsndr">Lina</div><div class="bub o">I focused on methodology.</div></div>
+              <div><div class="bsndr">Omar</div><div class="bub o">I drafted the intro.</div></div>
+              <div style="align-self:flex-end"><div class="bsndr" style="text-align:right">Sam</div><div class="bub s">Should we align before the milestone?</div></div>
+              <div><div class="bsndr">Lina</div><div class="bub o">Yes — different angles on RQ.</div></div>
+            </div>
+          </div>
+          <div class="lane">
+            <div class="lane-hdr nv"><div class="ldot"></div>Navi lane</div>
+            <div class="nv-card" style="margin:7px 7px 0">
+              <div class="nv-ct">⚠️ Misalignment detected</div>
+              <div class="nv-ci">Different RQ framing</div>
+              <div class="nv-ci">Tone mismatch between sections</div>
+              <div class="nv-ci">Methodology scope differs</div>
+            </div>
+            <div class="nv-card" style="margin:5px 7px">
+              <div class="nv-ct">📋 Session recap</div>
+              <div class="nv-ci">Two parallel outlines emerging</div>
+              <div class="nv-ci">Sam & Lina furthest aligned</div>
+              <div class="nv-ci">3 decisions still open</div>
+            </div>
+          </div>
+        </div>
+        <div class="gr-merge"><div class="gr-merge-t">Merge proposal ready</div><div class="gr-merge-btn">Review →</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ LAYER 6: ONBOARDING ══ -->
+<section class="story-section layout-right s-bg-subtle" id="onboarding">
+  <div class="s-num s-num-r">06</div>
+  <div class="story-visual">
+    <div style="width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px" class="reveal-l" data-parallax="mock">
+      <!-- Step-by-step flow illustration -->
+      <div style="background:var(--sf);border:1px solid var(--br);border-radius:13px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.09)">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,var(--pu) 0%,#9B5DE5 100%);padding:18px 20px">
+          <div style="font-family:var(--sans);font-size:10px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">How it works</div>
+          <div style="font-family:var(--display);font-size:20px;color:#fff;letter-spacing:-.4px;line-height:1.2">Three steps.<br><em style="font-style:italic;color:var(--pum)">Seconds flat.</em></div>
+        </div>
+        <!-- Steps -->
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:0">
+          <!-- Step 1 -->
+          <div style="display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--br)">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--pus);border:2px solid var(--pum);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans);font-size:12px;font-weight:800;color:var(--pu)">1</div>
+            <div>
+              <div style="font-size:12.5px;font-weight:700;color:var(--tx);margin-bottom:3px">Install the Chrome extension</div>
+              <div style="font-size:10.5px;color:var(--tx3);line-height:1.55">One click from the Chrome store. Takes under 10 seconds. No account needed yet.</div>
+            </div>
+          </div>
+          <!-- Step 2 -->
+          <div style="display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--br)">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--pus);border:2px solid var(--pum);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans);font-size:12px;font-weight:800;color:var(--pu)">2</div>
+            <div>
+              <div style="font-size:12.5px;font-weight:700;color:var(--tx);margin-bottom:3px">Browse your Canvas / Moodle</div>
+              <div style="font-size:10.5px;color:var(--tx3);line-height:1.55">Open your LMS as normal. Navi reads your courses, deadlines, and grades automatically as you scroll.</div>
+            </div>
+          </div>
+          <!-- Step 3 -->
+          <div style="display:flex;gap:13px;padding:13px 0">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pu),#9B5DE5);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--sans);font-size:12px;font-weight:800;color:#fff">3</div>
+            <div>
+              <div style="font-size:12.5px;font-weight:700;color:var(--tx);margin-bottom:3px">Your semester is live in Navi</div>
+              <div style="font-size:10.5px;color:var(--tx3);line-height:1.55">All your courses, deadlines, syllabuses, and grades — imported. Start your first session immediately.</div>
+            </div>
+          </div>
+        </div>
+        <!-- Import result card -->
+        <div style="margin:0 16px 16px;background:var(--pus);border:1px solid var(--pum);border-radius:9px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+          <div style="width:28px;height:28px;border-radius:7px;background:var(--pu);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">✓</div>
+          <div>
+            <div style="font-family:var(--sans);font-size:11px;font-weight:700;color:var(--pu)">3 courses imported</div>
+            <div style="font-size:9.5px;color:var(--pu);opacity:.7;margin-top:2px">9 deadlines · 3 syllabuses · Grades synced</div>
+          </div>
+          <div style="margin-left:auto;font-family:var(--sans);font-size:10px;font-weight:700;color:var(--pu);background:rgba(124,62,221,.12);padding:4px 10px;border-radius:100px;white-space:nowrap">Open Navi →</div>
+        </div>
+      </div>
+      <!-- Supported platforms row -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+        <div style="font-family:var(--sans);font-size:10px;color:var(--tx3);font-weight:500">Works with</div>
+        <div style="font-family:var(--sans);font-size:10px;font-weight:700;background:var(--sf);border:1px solid var(--br);padding:4px 11px;border-radius:100px;color:var(--tx2)">Canvas</div>
+        <div style="font-family:var(--sans);font-size:10px;font-weight:700;background:var(--sf);border:1px solid var(--br);padding:4px 11px;border-radius:100px;color:var(--tx2)">Moodle</div>
+        <div style="font-family:var(--sans);font-size:10px;font-weight:700;background:var(--sf);border:1px solid var(--br);padding:4px 11px;border-radius:100px;color:var(--tx2)">Blackboard</div>
+        <div style="font-family:var(--sans);font-size:10px;font-weight:700;background:var(--sf);border:1px solid var(--br);padding:4px 11px;border-radius:100px;color:var(--tx2)">Brightspace</div>
+      </div>
+    </div>
+  </div>
+  <div class="story-text">
+    <div class="s-tag reveal">Zero-friction onboarding</div>
+    <h2 class="s-h reveal rd1">Set up in<br>seconds. Not<br><em>an afternoon.</em></h2>
+    <p class="s-body reveal rd2">Navi knows that manually entering every course, every deadline, every syllabus is why students give up on study tools. So we built a Chrome extension. Turn it on while you're already on Canvas, Moodle, Blackboard. Scroll through your courses. Navi reads everything automatically.</p>
+    <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px" class="reveal rd3">
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;background:var(--sf);border:1px solid var(--br);border-radius:9px"><div style="width:30px;height:30px;border-radius:7px;background:var(--pus);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🔌</div><div><div style="font-size:12px;font-weight:600;color:var(--tx)">Works with your school's LMS</div><div style="font-size:10px;color:var(--tx3);margin-top:1px">Canvas, Moodle, Blackboard, Brightspace</div></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;background:var(--sf);border:1px solid var(--br);border-radius:9px"><div style="width:30px;height:30px;border-radius:7px;background:var(--gns);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">⚡</div><div><div style="font-size:12px;font-weight:600;color:var(--tx)">No manual entry required</div><div style="font-size:10px;color:var(--tx3);margin-top:1px">Courses, grades, syllabuses, deadlines — auto-filled</div></div></div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;background:var(--sf);border:1px solid var(--br);border-radius:9px;opacity:.6"><div style="width:30px;height:30px;border-radius:7px;background:var(--sf3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🚀</div><div><div style="font-size:12px;font-weight:600;color:var(--tx)">Coming soon to Chrome</div><div style="font-size:10px;color:var(--tx3);margin-top:1px">Join the waitlist to get early extension access</div></div></div>
+    </div>
+    <p class="s-body reveal rd4" style="font-size:14px;margin-bottom:0">Start studying in seconds. Not next semester.</p>
+  </div>
+</section>
+
+<!-- ══ FINAL CTA ══ -->
+<section class="final-cta reveal" id="final">
+  <h2 class="final-h">Your best semester<br>starts <em>right now.</em></h2>
+  <p class="final-sub">Join the waitlist. Shape the product. Study better from day one.</p>
+  <div class="final-form">
+    <input class="final-inp" type="text" placeholder="Your name" id="wl2-name" autocomplete="name">
+    <input class="final-inp" type="email" placeholder="you@university.edu" id="wl2-email" autocomplete="email">
+    <button class="final-btn" onclick="submitWL('wl2-name','wl2-email',this)">Get early access</button>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-logo">
+    <img class="navi-wordmark" src="Artboard 9_1.svg" alt="navi">
+  </div>
+  <div class="footer-right">
+    <span class="footer-copy">© 2026 Navi. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+/* ── CURSOR ── */
+const dot=document.getElementById('cDot'),ring=document.getElementById('cRing');
+let mx=0,my=0,rx=0,ry=0;
+const noHover=window.matchMedia('(hover:none)').matches;
+if(!noHover){
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    dot.style.left=mx+'px';dot.style.top=my+'px';
+  });
+  (function loop(){
+    rx+=(mx-rx)*.09;ry+=(my-ry)*.09;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('button,a,input').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{dot.style.width='14px';dot.style.height='14px';ring.style.borderColor='rgba(124,62,221,.65)'});
+    el.addEventListener('mouseleave',()=>{dot.style.width='8px';dot.style.height='8px';ring.style.borderColor='rgba(124,62,221,.35)'});
+  });
+}
+
+/* ── NAV SCROLL ── */
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>30),{passive:true});
+
+/* ── SCROLL REVEAL ── */
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}});
+},{threshold:0.07,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>ro.observe(el));
+
+/* ── THEATRICAL PARALLAX ── */
+const heroDevices=document.getElementById('heroDevices');
+const allMocks=document.querySelectorAll('[data-parallax="mock"]');
+
+// Particle field for visual sections
+function createParticles(){
+  const inkSections=document.querySelectorAll('.s-bg-ink .story-visual');
+  inkSections.forEach(sec=>{
+    const canvas=document.createElement('canvas');
+    canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.45';
+    sec.style.position='relative';
+    sec.appendChild(canvas);
+    const ctx=canvas.getContext('2d');
+    let W,H,pts=[];
+    function resize(){W=canvas.width=sec.offsetWidth;H=canvas.height=sec.offsetHeight;pts=Array.from({length:22},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5,o:Math.random()*.4+.1}))}
+    resize();
+    window.addEventListener('resize',resize);
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      pts.forEach(p=>{
+        p.x+=p.vx;p.y+=p.vy;
+        if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+        if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(167,139,250,${p.o})`;ctx.fill();
+      });
+      // draw faint connecting lines
+      for(let i=0;i<pts.length;i++){
+        for(let j=i+1;j<pts.length;j++){
+          const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
+          const d=Math.sqrt(dx*dx+dy*dy);
+          if(d<90){
+            ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);
+            ctx.strokeStyle=`rgba(124,62,221,${.08*(1-d/90)})`;ctx.lineWidth=.7;ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  });
+}
+if(!noHover) createParticles();
+
+// Scroll-driven parallax
+let ticking=false;
+function onScroll(){
+  if(ticking)return;
+  ticking=true;
+  requestAnimationFrame(()=>{
+    const sy=window.scrollY;
+
+    // Hero devices: drift up gently
+    if(heroDevices){
+      heroDevices.style.transform=`translateY(${sy*0.14}px)`;
+    }
+
+    // Each mock: 3D tilt + vertical drift based on viewport position
+    allMocks.forEach((m,i)=>{
+      const rect=m.getBoundingClientRect();
+      const cy=rect.top+rect.height/2;
+      const vcy=window.innerHeight/2;
+      const prog=(cy-vcy)/window.innerHeight; // -0.5 to 0.5
+      const dir=i%2===0?1:-1;
+      const rotY=dir*prog*5;
+      const rotX=prog*-2.5;
+      const ty=prog*-14;
+      const scale=1-Math.abs(prog)*.018;
+      m.style.transform=`perspective(1200px) rotateY(${rotY}deg) rotateX(${rotX}deg) translateY(${ty}px) scale(${scale})`;
+    });
+
+    // Section text: staggered depth crawl
+    document.querySelectorAll('.story-text').forEach(t=>{
+      const rect=t.getBoundingClientRect();
+      const prog=(rect.top)/window.innerHeight;
+      const ty=prog*-18;
+      t.style.transform=`translateY(${Math.max(-28,Math.min(28,ty))}px)`;
+    });
+
+    ticking=false;
+  });
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+
+// Mock hover tilt (desktop)
+if(!noHover){
+  document.querySelectorAll('[data-parallax="mock"],.plan-full').forEach(m=>{
+    m.addEventListener('mousemove',e=>{
+      const r=m.getBoundingClientRect();
+      const cx=(e.clientX-r.left)/r.width-.5;
+      const cy=(e.clientY-r.top)/r.height-.5;
+      m.style.transform=`perspective(1200px) rotateY(${cx*9}deg) rotateX(${-cy*7}deg) translateY(-6px) scale(1.01)`;
+    });
+    m.addEventListener('mouseleave',()=>m.style.transform='perspective(1200px) rotateY(0) rotateX(0) translateY(0) scale(1)');
+  });
+}
+
+/* ── SMOOTH SCROLL ── */
+function sTo(sel){const el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth'})}
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'})}
+  });
+});
+
+/* ── WAITLIST ── */
+function submitWL(nameId,emailId,btn){
+  const n=document.getElementById(nameId);
+  const em=document.getElementById(emailId);
+  const validEmail=em&&em.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  const validName=n&&n.value.trim().length>0;
+  if(validEmail&&validName){
+    btn.textContent='✓ You\'re on the list';
+    btn.style.background='#15803D';btn.style.color='#fff';
+    [n,em].forEach(i=>{i.value='';i.disabled=true});btn.disabled=true;
+  } else {
+    [!validName&&n,!validEmail&&em].forEach(i=>{
+      if(!i)return;
+      i.style.borderColor='rgba(185,28,28,.65)';i.style.background='rgba(185,28,28,.06)';
+      setTimeout(()=>{i.style.borderColor='';i.style.background=''},900);
+    });
+    (!validName?n:em).focus();
+  }
+}
+
+/* ── SECTION ENTRANCE: counter text scramble on number ── */
+const nums=document.querySelectorAll('.s-num');
+const numObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target;
+      const final=el.textContent;
+      let t=0;
+      const id=setInterval(()=>{
+        el.textContent=String(Math.floor(Math.random()*99)).padStart(2,'0');
+        t++;if(t>10){el.textContent=final;clearInterval(id)}
+      },50);
+      numObs.unobserve(el);
+    }
+  });
+},{threshold:.3});
+nums.forEach(n=>numObs.observe(n));
+</script>
+</body>
+</html>
