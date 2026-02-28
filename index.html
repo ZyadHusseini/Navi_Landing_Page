@@ -563,11 +563,34 @@ footer{border-top:1px solid var(--br);padding:24px clamp(20px,5vw,64px);display:
   <span class="wl-label">Early access</span>
   <h2 class="wl-h">The waitlist is open.<br><em>Don't fall behind.</em></h2>
   <p class="wl-sub">Early students get priority onboarding and shape the product.<br>No spam. Just a better way to study.</p>
-  <div class="wl-form">
-    <input class="wl-inp" type="text" placeholder="Your name" id="wl1-name" autocomplete="name">
-    <input class="wl-inp" type="email" placeholder="you@university.edu" id="wl1-email" autocomplete="email">
-    <button class="wl-btn" onclick="submitWL('wl1-name','wl1-email',this)">Reserve my spot</button>
-  </div>
+  <form
+  class="wl-form"
+  action="https://formspree.io/f/mwvnzdzo"
+  method="POST"
+>
+  <input
+    class="wl-inp"
+    type="text"
+    name="name"
+    placeholder="Your name"
+    id="wl1-name"
+    autocomplete="name"
+  >
+
+  <input
+    class="wl-inp"
+    type="email"
+    name="email"
+    placeholder="you@university.edu"
+    id="wl1-email"
+    autocomplete="email"
+    required
+  >
+
+  <button class="wl-btn" type="submit">
+    Reserve my spot
+  </button>
+</form>
 </section>
 
 <!-- ══ LAYER 1: COURSES ══ -->
@@ -948,11 +971,34 @@ footer{border-top:1px solid var(--br);padding:24px clamp(20px,5vw,64px);display:
 <section class="final-cta reveal" id="final">
   <h2 class="final-h">Your best semester<br>starts <em>right now.</em></h2>
   <p class="final-sub">Join the waitlist. Shape the product. Study better from day one.</p>
-  <div class="final-form">
-    <input class="final-inp" type="text" placeholder="Your name" id="wl2-name" autocomplete="name">
-    <input class="final-inp" type="email" placeholder="you@university.edu" id="wl2-email" autocomplete="email">
-    <button class="final-btn" onclick="submitWL('wl2-name','wl2-email',this)">Get early access</button>
-  </div>
+    <form
+      class="wl-form"
+      action="https://formspree.io/f/mwvnzdzo"
+      method="POST"
+    >
+      <input
+        class="wl-inp"
+        type="text"
+        name="name"
+        placeholder="Your name"
+        id="wl1-name"
+        autocomplete="name"
+      >
+    
+      <input
+        class="wl-inp"
+        type="email"
+        name="email"
+        placeholder="you@university.edu"
+        id="wl1-email"
+        autocomplete="email"
+        required
+      >
+    
+      <button class="wl-btn" type="submit">
+        Reserve my spot
+      </button>
+    </form>
 </section>
 
 <!-- ══ FOOTER ══ -->
